@@ -1,19 +1,19 @@
 ---
-import Navigation from "@components/Navigation.astro";
 import Container from "@components/Container.astro";
+import Navigation from "@components/Navigation.astro";
 ---
 
-<div>
-  <Container>
-    <div>
-      <header>
-        <a
-          class="fixed -top-full left-1/2 py-1 px-4 -translate-x-1/2 transition-top ease-in-out delay-150 focus:top-0 focus:outline-dashed focus:outline-black dark:focus:outline-orange focus:outline-1"
-          href="#content">Skip to main content</a
-        >
-        Astro Starter
-      </header>
+<a
+  class="fixed left-1/2 -top-full z-50 -translate-x-1/2 bg-ink px-4 py-1 font-mono text-xs text-paper focus:top-2"
+  href="#content">Skip to main content</a
+>
+<header>
+  <Container class="pt-6">
+    <div class="flex items-baseline justify-between gap-6 border-t border-rule-strong pt-3">
+      <a href="/" class="text-xl font-bold leading-none tracking-[-0.03em] hover:underline underline-offset-4">
+        Movie Log
+      </a>
       <Navigation />
     </div>
   </Container>
-</div>
+</header>

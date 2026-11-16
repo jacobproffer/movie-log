@@ -1,0 +1,65 @@
+---
+import type { GetStaticPaths, Page } from "astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Container from "@components/Container.astro";
+import YearStrip from "@components/YearStrip.astro";
+import FilmRow from "@components/FilmRow.astro";
+import Pagination from "@components/Pagination.astro";
+import { getFilms, groupByYear, average, PAGE_SIZE, type Film } from "../../utils/films";
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const byYear = groupByYear(await getFilms());
+  const strip = byYear.map(([year, list]) => ({ year, count: list.length }));
+  return byYear.flatMap(([year, list]) =>
+    paginate(list, { params: { year: String(year) }, props: { year, strip, all: list }, pageSize: PAGE_SIZE }),
+  );
+}) satisfies GetStaticPaths;
+
+interface Props {
+  page: Page<Film>;
+  year: number;
+  strip: { year: number; count: number }[];
+  all: Film[];
+}
+
+const { page, year, strip, all } = Astro.props;
+const theater = all.filter((f) => f.data.venue === "Theater").length;
+const avg = average(all.map((f) => f.data.rating).filter((r): r is number => r !== undefined));
+const pageLabel = page.lastPage > 1 ? ` · Page ${page.currentPage} of ${page.lastPage}` : "";
+---
+
+<BaseLayout pageTitle={`${year}${pageLabel} · Movie Log`} pageDescription={`Every film I watched in ${year}.`}>
+  <section class="pt-14 pb-10 md:pt-20">
+    <Container>
+      <p class="kicker fade-up">The year in film</p>
+      <h1 class="rise mt-4 text-[clamp(5rem,20vw,15rem)] font-bold leading-[0.8] tracking-[-0.06em]">
+        <span class="line"><span>{year}</span></span>
+      </h1>
+      <p class="fade-up mt-6 flex flex-wrap gap-x-6 gap-y-1 font-mono text-sm" style="--d:300ms">
+        <span>{all.length} films</span>
+        <span>{theater} in theaters</span>
+        <span>{all.length - theater} at home</span>
+        {avg && <span>Avg. {avg.toFixed(1)} / 5</span>}
+      </p>
+    </Container>
+  </section>
+
+  <section class="pb-6">
+    <Container>
+      <YearStrip years={strip} current={year} />
+    </Container>
+  </section>
+
+  <section aria-labelledby="list-heading">
+    <Container>
+      <div class="flex items-baseline justify-between border-b border-rule-strong pb-3">
+        <h2 id="list-heading" class="kicker text-ink">Entries {page.start + 1}–{page.end + 1} of {page.total}</h2>
+        {page.lastPage > 1 && <span class="kicker">Page {page.currentPage} / {page.lastPage}</span>}
+      </div>
+      <ol>
+        {page.data.map((film) => <FilmRow film={film} />)}
+      </ol>
+      <Pagination page={page} href={(n) => (n === 1 ? `/${year}/` : `/${year}/${n}/`)} />
+    </Container>
+  </section>
+</BaseLayout>

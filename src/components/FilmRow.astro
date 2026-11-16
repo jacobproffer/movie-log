@@ -1,0 +1,83 @@
+---
+import { render } from "astro:content";
+import Rating from "@components/Rating.astro";
+import { formatDate, type Film } from "../utils/films";
+
+interface Props {
+  film: Film;
+}
+
+const { film } = Astro.props;
+const { title, year, director, cast, watched, venue, venueDetail, genre, rating } = film.data;
+const hasNotes = Boolean(film.body?.trim());
+const Content = hasNotes ? (await render(film)).Content : null;
+const no = String(film.no).padStart(3, "0");
+const where = venue === "Theater" ? "In theater" : "At home";
+---
+
+<li class="group relative border-b border-rule">
+  <div class="grid grid-cols-[3.5rem_1fr] items-baseline gap-x-4 py-6 md:grid-cols-[5.5rem_1fr_13rem] md:gap-x-8 md:py-7">
+    <div class="pt-1.5 md:pt-3.5">
+      <span class="kicker block text-ink">No. {no}</span>
+      <time datetime={watched.toISOString().slice(0, 10)} class="kicker mt-1 block">
+        {formatDate(watched)}
+      </time>
+    </div>
+
+    <div class="min-w-0">
+      <h3
+        class="font-serif text-4xl leading-[0.95] tracking-tight text-balance transition-[translate] duration-500 ease-out-expo md:text-6xl md:group-hover:translate-x-6 group-hover:italic"
+      >
+        {title}
+      </h3>
+      <p class="mt-2 text-sm text-ink-2 transition-[translate] duration-500 ease-out-expo md:group-hover:translate-x-6">
+        <span class="font-semibold text-ink">{director}</span> · {year}
+        {cast.length > 0 && <span class="block text-ink-2 md:inline"><span class="hidden md:inline"> · </span>with {cast.join(", ")}</span>}
+      </p>
+
+      <!-- Compact meta for small screens -->
+      <p class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 md:hidden">
+        <span class="kicker text-ink">{where}</span>
+        <span class="kicker">{genre.join(" / ")}</span>
+        <Rating value={rating} />
+      </p>
+
+      {
+        Content && (
+          <details class="mt-3 md:group-hover:translate-x-6 transition-[translate] duration-500 ease-out-expo">
+            <summary class="kicker cursor-pointer list-none text-ink hover:underline [&::-webkit-details-marker]:hidden">
+              + Notes
+            </summary>
+            <div class="mt-3 max-w-2xl font-serif text-xl leading-snug md:text-2xl [&_p+p]:mt-3">
+              <Content />
+            </div>
+          </details>
+        )
+      }
+    </div>
+
+    <!-- Right column: fades out as the stub peeks in -->
+    <div class="hidden flex-col items-end gap-2 pt-3 text-right transition-opacity duration-300 group-hover:opacity-0 md:flex">
+      <span class="kicker">{genre.join(" / ")}</span>
+      <span class="kicker text-ink">{where}</span>
+      <Rating value={rating} />
+    </div>
+  </div>
+
+  <!-- Stub peek card (desktop hover). Everything on it is also in the row. -->
+  <aside
+    aria-hidden="true"
+    class="pointer-events-none absolute right-0 top-6 hidden w-56 translate-x-3 rotate-2 border border-rule-strong bg-paper-2 opacity-0 shadow-[5px_5px_0_var(--ink)] transition-[opacity,translate,rotate] duration-500 ease-out-expo group-hover:translate-x-0 group-hover:rotate-0 group-hover:opacity-100 md:block"
+  >
+    <div class="flex items-center justify-between border-b border-dashed border-rule-strong px-3 py-2">
+      <span class="kicker text-ink">{venue === "Theater" ? "Admit one" : "Home screening"}</span>
+      <span class="kicker text-ink">No. {no}</span>
+    </div>
+    <div class="space-y-2 px-3 py-3">
+      <p class="font-mono text-xs text-ink">{formatDate(watched, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}</p>
+      <p class="kicker">{venueDetail ?? where}</p>
+      <p class="kicker">{genre.join(" / ")}</p>
+      <Rating value={rating} />
+    </div>
+  </aside>
+</li>

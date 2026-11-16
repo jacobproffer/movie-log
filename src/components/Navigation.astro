@@ -1,1 +1,20 @@
-<nav aria-label="primary"></nav>
+---
+const links = [
+  { href: "/", label: "Recent" },
+  { href: "/#years", label: "Years" },
+];
+---
+
+<nav aria-label="primary">
+  <ul class="flex gap-5">
+    {
+      links.map((l) => (
+        <li>
+          <a href={l.href} class="kicker text-ink hover:underline underline-offset-4">
+            {l.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

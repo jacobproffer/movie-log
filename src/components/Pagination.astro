@@ -1,0 +1,49 @@
+---
+import type { Page } from "astro";
+
+interface Props {
+  page: Page<unknown>;
+  /** Builds the URL for page n. */
+  href: (n: number) => string;
+}
+
+const { page, href } = Astro.props;
+const { currentPage: cur, lastPage: last } = page;
+
+// First, last, and a window around the current page, with gaps marked by null.
+const nums = [...new Set([1, cur - 1, cur, cur + 1, last])].filter((n) => n >= 1 && n <= last).sort((a, b) => a - b);
+const items: (number | null)[] = [];
+nums.forEach((n, i) => {
+  if (i > 0 && n - nums[i - 1] > 1) items.push(null);
+  items.push(n);
+});
+---
+
+{
+  last > 1 && (
+    <nav aria-label="Pages" class="mt-12 flex items-center justify-between gap-4 border-t border-rule-strong pt-4">
+      {page.url.prev ? <a href={page.url.prev} class="kicker text-ink hover:underline underline-offset-4">← Newer</a> : <span class="kicker opacity-40">← Newer</span>}
+      <ol class="flex items-center gap-1">
+        {items.map((n) =>
+          n === null ? (
+            <li class="kicker px-1">…</li>
+          ) : (
+            <li>
+              <a
+                href={href(n)}
+                aria-current={n === cur ? "page" : undefined}
+                class:list={[
+                  "grid h-8 min-w-8 place-items-center px-2 font-mono text-xs",
+                  n === cur ? "bg-ink text-paper" : "hover:bg-ink hover:text-paper",
+                ]}
+              >
+                {n}
+              </a>
+            </li>
+          ),
+        )}
+      </ol>
+      {page.url.next ? <a href={page.url.next} class="kicker text-ink hover:underline underline-offset-4">Older →</a> : <span class="kicker opacity-40">Older →</span>}
+    </nav>
+  )
+}

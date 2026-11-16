@@ -1,0 +1,48 @@
+---
+interface Props {
+  years: { year: number; count: number }[];
+  /** Highlights this year's card (on a year page). */
+  current?: number;
+}
+
+const { years, current } = Astro.props;
+const max = Math.max(...years.map((y) => y.count), 1);
+---
+
+<nav aria-label="Browse by year">
+  <ol class="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-4 [scrollbar-width:thin]">
+    {
+      years.map(({ year, count }, i) => {
+        const active = year === current;
+        return (
+          <li class="snap-start shrink-0">
+            <a
+              href={`/${year}/`}
+              aria-current={active ? "page" : undefined}
+              class:list={[
+                "group flex w-36 flex-col justify-end gap-3 border p-4 transition-colors duration-300 md:w-44",
+                active
+                  ? "border-ink bg-ink text-paper"
+                  : "border-rule-strong hover:bg-ink hover:text-paper",
+              ]}
+            >
+              <div class="flex h-16 items-end">
+                <span
+                  class:list={[
+                    "fade-up block w-3 transition-colors duration-300",
+                    active ? "bg-paper" : "bg-ink group-hover:bg-paper",
+                  ]}
+                  style={`height:${Math.max(8, (count / max) * 100)}%; --d:${200 + i * 60}ms`}
+                />
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="text-4xl font-bold leading-none tracking-[-0.04em]">{year}</span>
+                <span class="font-mono text-[0.6875rem] tracking-[0.12em]">{String(count).padStart(2, "0")}</span>
+              </div>
+            </a>
+          </li>
+        );
+      })
+    }
+  </ol>
+</nav>

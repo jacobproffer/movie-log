@@ -1,9 +1,87 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
-import Hero from "@components/Hero.astro";
-const pageTitle = "Astro Starter";
+import Container from "@components/Container.astro";
+import Stat from "@components/Stat.astro";
+import YearStrip from "@components/YearStrip.astro";
+import FilmRow from "@components/FilmRow.astro";
+import { getFilms, groupByYear, toWords, average } from "../utils/films";
+
+/** How many of the latest entries to show on the home page. */
+const RECENT = 10;
+
+const films = await getFilms();
+const byYear = groupByYear(films);
+const recent = films.slice(0, RECENT);
+
+const years = byYear.map(([y]) => y);
+const span = years.length ? Math.max(...years) - Math.min(...years) + 1 : 0;
+const firstLine = span <= 1 ? "A year" : `${toWords(span)} years`;
+
+const theaterCount = films.filter((f) => f.data.venue === "Theater").length;
+const ratings = films.map((f) => f.data.rating).filter((r): r is number => r !== undefined);
+const avg = average(ratings);
+const fiveStars = ratings.filter((r) => r === 5).length;
+
+const genreCounts = new Map<string, number>();
+films.forEach((f) => f.data.genre.forEach((g) => genreCounts.set(g, (genreCounts.get(g) ?? 0) + 1)));
+const topGenre = [...genreCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+const latestYear = years[0];
 ---
 
-<BaseLayout pageTitle={pageTitle}>
-  <Hero headline={pageTitle} />
+<BaseLayout pageTitle="Movie Log" pageDescription="Every film I've watched, in theaters and at home.">
+  <!-- Masthead: two black hairlines like the notebook cover -->
+  <section class="pt-20 pb-14 md:pt-36 md:pb-20">
+    <Container>
+      <div class="border-t border-rule-strong pt-4">
+        <h1 class="rise text-[clamp(3.25rem,11vw,9.5rem)] font-bold leading-[0.88] tracking-[-0.05em]">
+          <span class="line" style="--i:0"><span>{firstLine}</span></span>
+          <span class="line" style="--i:1"><span>in the <em class="font-serif font-normal tracking-[-0.02em]">dark.</em></span></span>
+        </h1>
+      </div>
+      <p class="fade-up mt-8 max-w-xl text-lg leading-relaxed text-ink-2" style="--d:450ms">
+        A running log of every film I've watched: who made it, who was in it, where I saw it, and what I thought.
+      </p>
+    </Container>
+  </section>
+
+  <section aria-label="At a glance" class="pb-16 md:pb-24">
+    <Container>
+      <dl class="fade-up grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4" style="--d:600ms">
+        <Stat label="Films logged" value={films.length} />
+        <Stat label="In theaters" value={theaterCount} />
+        <Stat label="Average rating" value={avg ? avg.toFixed(1) : "—"} />
+        <Stat label="Five-star films" value={fiveStars} />
+      </dl>
+      <p class="kicker mt-6">Most watched genre: <span class="text-ink">{topGenre}</span></p>
+    </Container>
+  </section>
+
+  <section id="years" aria-labelledby="years-heading" class="pb-16">
+    <Container>
+      <div class="mb-5 flex items-baseline justify-between">
+        <h2 id="years-heading" class="kicker text-ink">By year</h2>
+        <span class="kicker">Scroll →</span>
+      </div>
+      <YearStrip years={byYear.map(([year, list]) => ({ year, count: list.length }))} />
+    </Container>
+  </section>
+
+  <section aria-labelledby="recent-heading">
+    <Container>
+      <div class="flex items-baseline justify-between border-b border-rule-strong pb-3">
+        <h2 id="recent-heading" class="text-3xl font-bold tracking-[-0.03em]">Recently watched</h2>
+        <span class="kicker">Latest {recent.length}</span>
+      </div>
+      <ol>
+        {recent.map((film) => <FilmRow film={film} />)}
+      </ol>
+      {
+        latestYear && (
+          <a href={`/${latestYear}/`} class="kicker mt-8 inline-block text-ink hover:underline underline-offset-4">
+            All of {latestYear} →
+          </a>
+        )
+      }
+    </Container>
+  </section>
 </BaseLayout>

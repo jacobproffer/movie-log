@@ -1,0 +1,24 @@
+---
+interface Props {
+  value?: number;
+  size?: "sm" | "lg";
+}
+
+const { value, size = "sm" } = Astro.props;
+---
+
+{
+  value ? (
+    <span
+      class:list={["inline-flex gap-[0.2em] font-mono leading-none", size === "lg" ? "text-2xl" : "text-xs"]}
+      role="img"
+      aria-label={`Rated ${value} out of 5`}
+    >
+      {[1, 2, 3, 4, 5].map((n) => (
+        <span class={n <= value ? "text-ink" : "text-rule"} aria-hidden="true">●</span>
+      ))}
+    </span>
+  ) : (
+    <span class:list={["font-mono text-ink-3", size === "lg" ? "text-base" : "text-xs"]}>Unrated</span>
+  )
+}

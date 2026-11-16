@@ -1,9 +1,15 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
-import Hero from "@components/Hero.astro";
-const pageTitle = "404";
+import Container from "@components/Container.astro";
 ---
 
-<BaseLayout pageTitle="404">
-  <Hero headline={pageTitle} />
+<BaseLayout pageTitle="Not found · Movie Log">
+  <Container class="py-24 md:py-40">
+    <p class="kicker">Error 404</p>
+    <h1 class="rise mt-6 font-serif text-[clamp(3rem,10vw,8rem)] leading-[0.9]">
+      <span class="line" style="--i:0"><span>This reel is</span></span>
+      <span class="line" style="--i:1"><span><em class="font-serif">missing.</em></span></span>
+    </h1>
+    <a href="/" class="kicker mt-10 inline-block hover:underline">← Back to the log</a>
+  </Container>
 </BaseLayout>
